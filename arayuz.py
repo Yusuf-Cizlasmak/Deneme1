@@ -108,7 +108,7 @@ if "__main__" == __name__:
         }
         </style>
         """,
-    unsafe_allow_html=True)
+        unsafe_allow_html=True)
 
 
     with st.sidebar:
