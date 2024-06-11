@@ -4,8 +4,7 @@ pandas
 plotly
 streamlit
 pyinstaller
-kaleido
+pandas-datareader
 streamlit
 pandas-datareader
 prophet
-anneal

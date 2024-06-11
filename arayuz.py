@@ -1,6 +1,7 @@
 import math
 from math import sqrt,ceil
 import pandas as pd 
+import numpy as np
 
 # EXTREME POINT ALGORITHM ##
 from plots import calculate_remaining_volume,plotBoxes
@@ -18,41 +19,63 @@ from anneal import Annealer
 
 class BinPackingProblem(Annealer):
     def __init__(self, bins, boxes):
+        """
+        self.bins: list (Kutuların yerleştirileceği konteynerlerin listesi)
+        self.boxes: list (Kutuların listesi)
+        self.unplaced_boxes: list (Dizilemeyen kutuların listesi)
+        self.state: list (Kutuların yerleştirildiği durum)
+        super(BinPackingProblem, self).__init__(self.state) : Annealer'dan attribute kalıtımı
+        """
         self.bins = bins
         self.boxes = boxes
+        self.box_types = {box.type: box for box in boxes}
         self.unplaced_boxes = []
         self.state = self.initial_state()
         super(BinPackingProblem, self).__init__(self.state)
 
+    
+    def update_used_space(self, box, bin, x, y, z):
+        for i in range(x, x + box.width):
+            for j in range(y, y + box.height):
+                for k in range(z, z + box.depth):
+                    bin.used_space[i][j][k] = True
+
     def initial_state(self):
+        """
+        Başlangıç durumu fonksiyonu
+
+        state: list (Kutuların yerleştirildiği durum)
+        bins: list (Kutuların yerleştirileceği konteynerlerin listesi)
+        boxes: list (Kutuların listesi)
+
+        return : state (Kutuların yerleştirildiği durum) 
+        """
         state = []
         bins = list(self.bins)
         sorted_boxes = sorted(self.boxes, key=lambda box: box.volume, reverse=True)
 
+
         for box in sorted_boxes:
             placed = False
             for bin in bins:
+                # Konteynerin içerisine kutunun sığabileceği bir pozisyon var mı kontrol edilir.
                 x, y, z = self.find_new_position(box, bin)
                 if x is not None:
+                
+                    # Kutu yerleştirilir ve kullanılan alan güncellenir.
                     state.append((box, bin, x, y, z))
                     bin.boxes.append(box)
                     box.set_position(x, y, z)
                     self.update_used_space(box, bin, x, y, z)
                     placed = True
                     break
+
+            # Kutu yerleştirilemezse unplaced_boxes listesine eklenir.
             if not placed:
                 self.unplaced_boxes.append(box)
 
         return state
-
-    def find_new_position(self, box, bin):
-        for x in range(bin.width - box.width + 1):
-            for y in range(bin.height - box.height + 1):
-                for z in range(bin.depth - box.depth + 1):
-                    if self.can_fit_in_bin(box, bin, x, y, z):
-                        return x, y, z
-        return None, None, None
-
+    
     def can_fit_in_bin(self, box, bin, x, y, z):
         for i in range(x, x + box.width):
             for j in range(y, y + box.height):
@@ -61,32 +84,31 @@ class BinPackingProblem(Annealer):
                         return False
         return True
 
-    def update_used_space(self, box, bin, x, y, z):
-        for i in range(x, x + box.width):
-            for j in range(y, y + box.height):
-                for k in range(z, z + box.depth):
-                    bin.used_space[i][j][k] = True
 
-    def move(self):
-        max_volume_box = max(self.state, key=lambda item: item[0].volume)
-        box, src_bin, x, y, z = max_volume_box
-        dest_bin = rand.choice(self.bins)
+    def find_new_position(self, box, bin):
+        """
+        Bu fonksiyon, kutunun konteyner içerisindeki yeni pozisyonunu bulur.
+        
+        """
+        for x in range(bin.width - box.width + 1):
+            for y in range(bin.height - box.height + 1):
+                for z in range(bin.depth - box.depth + 1):
+                    if self.can_fit_in_bin(box, bin, x, y, z):
+                        return x, y, z
+        return None, None, None
 
-        if src_bin == dest_bin:
-            new_x, new_y, new_z = self.find_new_position(box, dest_bin)
-            if new_x is not None:
-                self.state.remove((box, src_bin, x, y, z))
-                dest_bin.boxes.append(box)
-                box.set_position(new_x, new_y, new_z)
-                self.state.append((box, dest_bin, new_x, new_y, new_z))
-                self.update_used_space(box, dest_bin, new_x, new_y, new_z)
 
     def energy(self):
+        """
+        Energy: Kutuda kalan boş alanın toplam hacmi - amaç bunu düşük tutmak
+        """
         total_wasted_space = sum(
             (bin.width * bin.height * bin.depth) - sum(box.width * box.height * box.depth for box in bin.boxes)
             for bin in self.bins
         )
         return total_wasted_space
+    
+
 
 
 if "__main__" == __name__:
@@ -113,7 +135,7 @@ if "__main__" == __name__:
 
     with st.sidebar:
         st.image("https://uxwing.com/wp-content/themes/uxwing/download/logistics-shipping-delivery/truck-loading-icon.png", width=100) # Container ship icon
-        st.title("Konteyner Dizme Uygulaması")
+        st.title("Sünger Optimizasyonu Uygulaması")
         option = st.radio("Select an option:", ["1.Algoritma","2.Algoritma","Example CSV File Download"])
 
 
@@ -122,7 +144,7 @@ if "__main__" == __name__:
 
         df = st.file_uploader("Upload a CSV file", type=["csv"])
         
-        st.write("Please upload a CSV file. And push the button below to run the packing box algorithm.")
+        st.write("Lütfen bir CSV dosyası yükleyin ve ardından 'Algoritmayı Çalıştır' butonuna tıklayın")
         
             # Run the packing_box function
         BinX = 4000
@@ -130,19 +152,19 @@ if "__main__" == __name__:
         BinZ = 300
 
         if df is None:
-            st.error("Please upload a CSV file.")
+            st.error("Lütfen bir CSV dosyası yükleyin.")
         else:
             boxes, non_plotted_boxes, bin_size = packing_box(df, BinX, BinY, BinZ)
 
         #ÇALIŞTIRMA BUTONU##
-        if st.button("Run Packing Box"):
+        if st.button("Algoritmayı Çalıştır"):
             col1, col2 = st.columns([1, 1])
 
             bin = Bin(size=(bin_size.size[0], bin_size.size[1], bin_size.size[2]))
             # Calculate remaining volume
             remaining_volume = calculate_remaining_volume(bin, boxes)
 
-            labels = ['Not Used Volume', 'Remaining Volume']
+            labels = ['Dizilmeyen', 'Dizilen Kutular']
             sizes = [100 - remaining_volume, remaining_volume]
             colors = ['#ff9999', '#66b3ff']
 
@@ -155,10 +177,14 @@ if "__main__" == __name__:
                 col1_chart.update_layout(title='Remaining Volume')
                 st.plotly_chart(col1_chart, use_container_width=True)
 
-            box_types = [box.boxtype.senario + " Sünger " + box.boxtype.type for box in boxes]
-            box_quantities = [box_types.count(box_type) for box_type in set(box_types)]
+            box_types2 = [f"{box.boxtype.senario} Sünger {box.boxtype.type}" for box in boxes]
+
+            box_quantities = [box_types2.count(box_type) for box_type in set(box_types2)]
 
             with col2:
+
+
+                box_types = [f"{box.boxtype.senario} Sünger {box.boxtype.type}" for box in boxes]
                 col2_chart = go.Figure(data=[go.Bar(x=list(set(box_types)), y=box_quantities, marker_color=px.colors.sequential.Blues_r)],
                      layout=go.Layout(
                          xaxis=dict(title='Box Types'),
@@ -185,7 +211,7 @@ if "__main__" == __name__:
                     )
 
             #DATAFRAME OLUŞTURMA##
-            st.markdown("Container Information")
+            st.markdown("Container Bilgileri")
 
             box_sizes = [box.size for box in boxes]  # Get the sizes of all the boxes
             total_box_volume = sum(box[0] * box[1] * box[2] for box in box_sizes)  # Calculate the total volume of all boxes
@@ -202,7 +228,7 @@ if "__main__" == __name__:
             st.table(stats_df)
 
             # Add a success message
-            st.success("Packing Box Algorithm has been run successfully.")
+            st.success("Algoritma başarıyla çalıştırıldı.")
 
 
 
@@ -230,6 +256,8 @@ if "__main__" == __name__:
     elif option == "2.Algoritma":
         st.title("Simulated Annealing for Bin Packing")
 
+        col3, col4 = st.columns([1, 1])
+
         # File uploader for input CSV
         uploaded_file = st.file_uploader("Upload CSV with Box Dimensions", type=["csv"])
         if uploaded_file is not None:
@@ -242,10 +270,10 @@ if "__main__" == __name__:
         #st.progress(0)
 
       
-        if st.button("Run Packing Box"):
+        if st.button("Algoritmayı Çalıştır"):
             
-
-                my_bar = st.progress(0,text="Running the Simulated Annealing algorithm...")
+                progress_text="İlgili Algoritma çalışıyor... Kutuların yerleştirilmesi bekleniyor."
+                my_bar = st.progress(0,text=progress_text)
 
                 container_width = 330
                 container_height = 30
@@ -269,13 +297,43 @@ if "__main__" == __name__:
                 problem.steps = 50
                 state, energy = problem.anneal()
 
+                with col3:
+                    #PIE CHART FOR 2 ALGORITMA ##
+                    total_box_volume = problem.energy()
+                    container_dimensions = np.array([container_width, container_height, container_depth])
+                    remaining_volume = np.prod(container_dimensions) - total_box_volume
+                    used_volume = total_box_volume
+                    labels = ['Remaining Volume', 'Used Volume']
+                    sizes = [remaining_volume*100, used_volume*100]
+                    colors = ['#ff9999', '#66b3ff']
+                    fig = go.Figure(data=[go.Pie(
+                        labels=labels,
+                        values=sizes,
+                        textinfo='label+percent',
+                        texttemplate='%{label}: %{percent:.2%}',
+                        marker=dict(colors=colors)
+                    )])
+                    fig.update_layout(title='Remaining Volume')
+                    st.plotly_chart(fig, use_container_width=True)
 
-                progress_text="Running the Simulated Annealing algorithm..."
+                with col4:
+                    #BAR CHART FOR 2 ALGORITMA ##
+                    box_type_counts = [box.boxtype for box in boxes1]
+                    fig = go.Figure(data=[go.Bar(
+                        x=list(box_type_counts.keys()),
+                        y=list(box_type_counts.values()),
+                        marker=dict(color=px.colors.sequential.Burg)
+                    )])
+
+                    fig.update_layout(title='Dizilen Kutu Türleri ve Miktarları')
+                    fig.update_layout(xaxis={'categoryorder': 'total descending'})
+                    st.plotly_chart(fig, use_container_width=True)
 
 
+                # Progress bar ## 
                 for percent_complete in range(100):
                     time.sleep(0.3)
-                    my_bar.progress(percent_complete + 1)
+                    my_bar.progress(percent_complete + 1,text=progress_text)
                 
 
 
@@ -286,17 +344,16 @@ if "__main__" == __name__:
                 # Show plot in Streamlit
                 st.plotly_chart(fig, use_container_width=True)
 
+                st.success("Check the 'plots' directory for output files.")
+                with open("plots/plot.html", "r") as f:
+                    download_html = f.read()
+                    st.download_button(label="Download Plot as HTML", data=download_html, file_name="packed_plot.html", mime="text/html")
+
                 if problem.unplaced_boxes:
                     st.subheader("Unplaced Boxes:")
                     for box in problem.unplaced_boxes:
                         st.write(f"Box of size {box.size} could not be placed.")
 
-
-                # Saving results locally (optional)
-                st.success("Check the 'plots' directory for output files.")
-                with open("plots/plot.html", "r") as f:
-                    download_html = f.read()
-                    st.download_button(label="Download Plot as HTML", data=download_html, file_name="packed_plot.html", mime="text/html")
 
                 st.markdown("Simulated Annealing has been executed successfully.")
                 my_bar.empty()
