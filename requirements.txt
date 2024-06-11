@@ -4,3 +4,7 @@ pandas
 plotly
 streamlit
 pyinstaller
+kaleido
+streamlit
+pandas-datareader
+prophet
