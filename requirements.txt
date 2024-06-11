@@ -8,3 +8,4 @@ kaleido
 streamlit
 pandas-datareader
 prophet
+anneal

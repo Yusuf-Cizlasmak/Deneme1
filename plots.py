@@ -90,13 +90,4 @@ def plotBoxes(boxes, bin):
     if not os.path.exists('plots'):
         os.makedirs('plots')
     
-    # Save as HTML
-    html_path = os.path.join('plots', 'plot.html')
-    pio.write_html(fig, file=html_path, auto_open=False)
-    
-    # Save as static image (PNG)
-    png_path = os.path.join('plots', 'plot.png')
-    fig.write_image(png_path)
-    
-
     return fig
