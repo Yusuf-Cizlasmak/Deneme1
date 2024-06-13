@@ -152,7 +152,7 @@ if "__main__" == __name__:
         BinZ = 300
 
         if df is None:
-            st.error("Lütfen bir CSV dosyası yükleyin.")
+            st.error("Lütfen bir CSV dosyası yükleyin. Eğer bir CSV dosyanız yoksa, örnek bir CSV dosyasını indirebilirsiniz.")
         else:
             boxes, non_plotted_boxes, bin_size = packing_box(df, BinX, BinY, BinZ)
 
@@ -544,9 +544,9 @@ if "__main__" == __name__:
     elif option == "Example CSV File Download":
         # Add your code for the "Example CSV File Download" option here
         
-        st.write("You can download the example CSV file from the link below.")
+        st.write("Örnek bir CSV dosyasını indirebilirsiniz.")
         st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Microsoft_Office_Excel_%282013%E2%80%932019%29.svg/120px-Microsoft_Office_Excel_%282013%E2%80%932019%29.svg.png", width=100) # Excel icon
 
         with open("deneme.csv", "rb") as file:
-            st.download_button("Download Example CSV File", file, "example.csv", "text/csv")
+            st.download_button("Örnek Dosyayı İndir", file, "example.csv", "text/csv")
 
