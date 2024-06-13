@@ -1,4 +1,5 @@
 plots
-reinforcement learning
+reinforcement_learning.py
 *.png
 *.html
+*.csv
