@@ -297,6 +297,14 @@ if "__main__" == __name__:
                 problem.steps = 50
                 state, energy = problem.anneal()
 
+
+
+                # Progress bar ## 
+                for percent_complete in range(100):
+                    time.sleep(0.3)
+                    my_bar.progress(percent_complete + 1,text=progress_text)
+                
+                col3, col4 = st.columns([1, 1])
                 with col3:
                     #PIE CHART FOR 2 ALGORITMA ##
                     total_box_volume = problem.energy()
@@ -318,7 +326,13 @@ if "__main__" == __name__:
 
                 with col4:
                     #BAR CHART FOR 2 ALGORITMA ##
-                    box_type_counts = [box.boxtype for box in boxes1]
+                    box_type_counts = {}
+                    for box in boxes1:
+                        if box.type in box_type_counts:
+                            box_type_counts[box.type] += 1
+                        else:
+                            box_type_counts[box.type] = 1
+
                     fig = go.Figure(data=[go.Bar(
                         x=list(box_type_counts.keys()),
                         y=list(box_type_counts.values()),
@@ -330,32 +344,47 @@ if "__main__" == __name__:
                     st.plotly_chart(fig, use_container_width=True)
 
 
-                # Progress bar ## 
-                for percent_complete in range(100):
-                    time.sleep(0.3)
-                    my_bar.progress(percent_complete + 1,text=progress_text)
                 
-
-
-
                 # Visualizing the result
+                
                 fig = plot_bins(bins1, container_width, container_height, container_depth, box_colors)
+                
 
                 # Show plot in Streamlit
                 st.plotly_chart(fig, use_container_width=True)
+
+
 
                 st.success("Check the 'plots' directory for output files.")
                 with open("plots/plot.html", "r") as f:
                     download_html = f.read()
                     st.download_button(label="Download Plot as HTML", data=download_html, file_name="packed_plot.html", mime="text/html")
 
-                if problem.unplaced_boxes:
-                    st.subheader("Unplaced Boxes:")
-                    for box in problem.unplaced_boxes:
-                        st.write(f"Box of size {box.size} could not be placed.")
 
 
-                st.markdown("Simulated Annealing has been executed successfully.")
+                ## DİZİLMEYEN KUTULAR İÇİN 
+
+                st.write("Kutu içerisine dizilemeyen kutularımız dağılımı;")
+
+                if len(problem.unplaced_boxes) == 0:
+                    st.success("Tüm kutular dizilmiştir.")
+
+                else:
+                    unplaced_box_types = [box.type for box in problem.unplaced_boxes]
+                    unplaced_box_quantities = [unplaced_box_types.count(box_type) for box_type in set(unplaced_box_types)]
+                    unplaced_fig = go.Figure(
+                        data=[go.Bar(x=list(set(unplaced_box_types)), y=unplaced_box_quantities, marker=dict(color=px.colors.sequential.Burg))],
+                        layout=go.Layout(
+                            xaxis=dict(title='Box Types', type='category'),
+                            yaxis=dict(title='Quantity'),
+                            colorway=px.colors.sequential.Viridis
+                        ))
+                    unplaced_fig.update_layout(title='Dizilmeyen Kutu Türleri ve Miktarları', barmode='stack')
+                    unplaced_fig.update_layout(xaxis={'categoryorder': 'array', 'categoryarray': sorted(set(unplaced_box_types))})
+                    unplaced_chart = st.plotly_chart(unplaced_fig, use_container_width=True)
+
+
+                st.success("Algoritma başarıyla çalıştırıldı.")
                 my_bar.empty()
 
     
