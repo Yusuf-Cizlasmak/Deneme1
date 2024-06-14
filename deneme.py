@@ -1,18 +1,22 @@
+import time
+import random
+import random as rand
+import os
+import numpy as np
+
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import pandas as pd
+
+import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import plotly.io as pio
+
+from simanneal import Annealer
+
+
+
 def SA_algorithm(data):
-    import time
-    import random
-    import random as rand
-    import os
-    import numpy as np
 
-    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-    import pandas as pd
-
-    import matplotlib.pyplot as plt
-    import plotly.graph_objects as go
-    import plotly.io as pio
-
-    from simanneal import Annealer
 
     class Bin1:
         def __init__(self, width, height, depth):

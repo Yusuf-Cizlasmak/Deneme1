@@ -1,5 +1,11 @@
-plots
+# reinforcement_learning.py dosyasını yoksay
 reinforcement_learning.py
+
+# Tüm png uzantılı dosyaları yoksay
 *.png
+
+# Tüm html uzantılı dosyaları yoksay
 *.html
+
+# Tüm csv uzantılı dosyaları yoksay
 *.csv

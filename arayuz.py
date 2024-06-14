@@ -259,12 +259,12 @@ if "__main__" == __name__:
         col3, col4 = st.columns([1, 1])
 
         # File uploader for input CSV
-        uploaded_file = st.file_uploader("Upload CSV with Box Dimensions", type=["csv"])
+        uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
         if uploaded_file is not None:
             data = pd.read_csv(uploaded_file)
 
         else:
-            st.write("Please upload a CSV file with box dimensions.")
+            st.write("Please upload a CSV file.")
     
 
         #st.progress(0)
